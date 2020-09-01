@@ -1,4 +1,6 @@
-const { Client, WebhookClient } = require('discord.js');
+const fs = require('fs');
+const dotenv = require('dotenv');
+const { Client, WebhookClient, Collection } = require('discord.js');
 const client = new Client({
   partials: ['MESSAGE', 'REACTION'],
 });
@@ -6,11 +8,19 @@ const webhookClient = new WebhookClient(
   process.env.WEBHOOK_ID,
   process.env.WEBHOOK_TOKEN
 );
-const dotenv = require('dotenv');
 
 const PREFIX = '$';
-
 dotenv.config();
+
+client.commands = new Collection();
+const commandFiles = fs
+  .readdirSync('./commands')
+  .filter((file) => file.endsWith('.js'));
+for (const file of commandFiles) {
+  const command = require(`./commands/${file}`);
+  client.commands.set(command.name, command);
+}
+
 
 client.once('ready', () => {
   console.log(`${client.user.tag} Bot logged in!`);
