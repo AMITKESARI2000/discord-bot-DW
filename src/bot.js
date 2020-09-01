@@ -20,7 +20,7 @@ client.on('message', async (message) => {
   if (message.author.bot) return;
   // console.log(`${message.author.username}: ${message.content}`);
 
-  // STATIC REPLIES
+  // ====STATIC REPLIES====
   if (message.content.toLowerCase() === `${PREFIX}hello`) {
     message.reply(`Welcome to this Channel!`); //replies using @user_name
     // message.channel.send(`hello ${message.author.username}`); //Just a simple message
@@ -32,6 +32,7 @@ client.on('message', async (message) => {
     );
   }
 
+  // ====COMMANDS====
   if (message.content.startsWith(PREFIX)) {
     const [CMD_NAME, ...args] = message.content
       .trim()
@@ -65,6 +66,42 @@ client.on('message', async (message) => {
       const msg = args.join(' ');
       console.log(msg);
       webhookClient.send(msg);
+    } else if (CMD_NAME === 'avatar') {
+      if (!message.mentions.users.size) {
+        return message.channel.send(
+          `Your avatar: <${message.author.displayAvatarURL({
+            format: 'png',
+            dynamic: true,
+          })}>`
+        );
+      }
+
+      const avatarList = message.mentions.users.map((user) => {
+        return `${user.username}'s avatar: <${user.displayAvatarURL({
+          format: 'png',
+          dynamic: true,
+        })}>`;
+      });
+      message.channel.send(avatarList);
+    } else if (CMD_NAME === 'prune') {
+      if (!message.member.hasPermission('ADMINISTRATOR'))
+        return message.reply('You do not have permission!');
+      const amount = parseInt(args[0]) + 1;
+
+      if (isNaN(amount)) {
+        return message.reply("That doesn't seem to be a valid number.");
+      } else if (amount <= 1 || amount > 100) {
+        return message.reply('Please input a number between 1 and 99.');
+      }
+      message.channel
+        .bulkDelete(amount, true)
+        .then(() => console.log(`Bulk deleted ${amount} messages`))
+        .catch((err) => {
+          console.error(err);
+          message.channel.send(
+            'There was an error trying to prune messages in this channel!'
+          );
+        });
     }
   }
 });
@@ -85,4 +122,3 @@ client.on('messageReactionAdd', (reaction, user) => {
 });
 
 client.login(process.env.DISCORJS_BOT_TOKEN);
-// client.login("NzQ5NzE1Nzk1OTk0NjA3Njg2.X0wBPg.YRyS81yuNp7BX_pwrPU89jYVfaQ");
