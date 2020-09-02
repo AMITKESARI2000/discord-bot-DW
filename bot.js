@@ -4,10 +4,6 @@ const { Client, WebhookClient, Collection } = require('discord.js');
 const client = new Client({
   partials: ['MESSAGE', 'REACTION'],
 });
-const webhookClient = new WebhookClient(
-  process.env.WEBHOOK_ID,
-  process.env.WEBHOOK_TOKEN
-);
 
 const PREFIX = '$';
 dotenv.config();
@@ -21,101 +17,52 @@ for (const file of commandFiles) {
   client.commands.set(command.name, command);
 }
 
-
 client.once('ready', () => {
   console.log(`${client.user.tag} Bot logged in!`);
 });
 
-client.on('message', async (message) => {
-  if (message.author.bot) return;
-  // console.log(`${message.author.username}: ${message.content}`);
+client.on('guildMemberAdd', (member) => {
+  const channel = member.guild.channels.find((c) => c.name === 'arrivals');
+  if (!channel) return;
 
-  // ====STATIC REPLIES====
-  if (message.content.toLowerCase() === `${PREFIX}hello`) {
-    message.reply(`Welcome to this Channel!`); //replies using @user_name
-    // message.channel.send(`hello ${message.author.username}`); //Just a simple message
-  } else if (message.content.toLowerCase() === `${PREFIX}server`) {
-    message.channel.send(
-      `Server name: ${message.guild.name} 
-       Total members: ${message.guild.memberCount} 
-       Region: ${message.guild.region}`
-    );
-  }
-
-  // ====COMMANDS====
-  if (message.content.startsWith(PREFIX)) {
-    const [CMD_NAME, ...args] = message.content
-      .trim()
-      .substring(PREFIX.length)
-      .split(/\s+/);
-
-    if (CMD_NAME === 'kick') {
-      if (!message.member.hasPermission('KICK_MEMBERS'))
-        return message.reply('You do not have permission!');
-      if (args.length === 0) return message.reply('Please provide an ID');
-      const member = message.guild.members.cache.get(args[0]);
-      if (member) {
-        member
-          .kick()
-          .then((member) => message.channel.send(`${member} kicked`))
-          .catch((err) => message.channel.send(`Permission denied`));
-      } else {
-        message.channel.send('Member not found');
-      }
-    } else if (CMD_NAME === 'ban') {
-      if (!message.member.hasPermission('BAN_MEMBERS'))
-        return message.reply('You do not have permission!');
-      if (args.length === 0) return message.reply('Please provide an ID');
-      try {
-        const user = await message.guild.members.ban(args[0]);
-        message.channel.send(`User banned!`);
-      } catch (err) {
-        message.channel.send('Error occured');
-      }
-    } else if (CMD_NAME === 'announce') {
-      const msg = args.join(' ');
-      console.log(msg);
-      webhookClient.send(msg);
-    } else if (CMD_NAME === 'avatar') {
-      if (!message.mentions.users.size) {
-        return message.channel.send(
-          `Your avatar: <${message.author.displayAvatarURL({
-            format: 'png',
-            dynamic: true,
-          })}>`
-        );
-      }
-
-      const avatarList = message.mentions.users.map((user) => {
-        return `${user.username}'s avatar: <${user.displayAvatarURL({
-          format: 'png',
-          dynamic: true,
-        })}>`;
-      });
-      message.channel.send(avatarList);
-    } else if (CMD_NAME === 'prune') {
-      if (!message.member.hasPermission('ADMINISTRATOR'))
-        return message.reply('You do not have permission!');
-      const amount = parseInt(args[0]) + 1;
-
-      if (isNaN(amount)) {
-        return message.reply("That doesn't seem to be a valid number.");
-      } else if (amount <= 1 || amount > 100) {
-        return message.reply('Please input a number between 1 and 99.');
-      }
-      message.channel
-        .bulkDelete(amount, true)
-        .then(() => console.log(`Bulk deleted ${amount} messages`))
-        .catch((err) => {
-          console.error(err);
-          message.channel.send(
-            'There was an error trying to prune messages in this channel!'
-          );
-        });
-    }
-  }
+  channel.send(`Welcome to the server, ${member}. :wave:`);
 });
 
+client.on('message', (message) => {
+  console.log(`${message.author.username}: ${message.content}`);
+
+  if (message.author.bot || !message.content.startsWith(PREFIX)) return;
+  const [command, ...args] = message.content
+    .trim()
+    .substring(PREFIX.length)
+    .split(/\s+/);
+
+  if (!client.commands.has(command)) return;
+  try {
+    client.commands.get(command).execute(message, args);
+  } catch (error) {
+    console.error(error);
+    message.reply('There was an error trying to execute that command!');
+  }
+});
+client.on('message', (message) => {
+  const swearWords = [
+    'darn',
+    'dick',
+    'bitch',
+    'ass',
+    'asshole',
+    'piss',
+    'bloody',
+    'bastard',
+    'fuck',
+    'shit',
+  ];
+  if (swearWords.some((word) => message.content.includes(word))) {
+    message.reply('Please maintain the decorum of channel!!!');
+    message.delete().catch((e) => {});
+  }
+});
 client.on('messageReactionAdd', (reaction, user) => {
   const { name } = reaction.emoji;
   const member = reaction.message.guild.members.cache.get(user.id);
