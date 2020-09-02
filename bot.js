@@ -131,4 +131,4 @@ client.on('messageReactionAdd', (reaction, user) => {
   }
 });
 
-client.login(process.env.DISCORJS_BOT_TOKEN);
+client.login(process.env.BOT_TOKEN);
