@@ -32,14 +32,17 @@ client.on('message', (message) => {
   console.log(`${message.author.username}: ${message.content}`);
 
   if (message.author.bot || !message.content.startsWith(PREFIX)) return;
-  const [command, ...args] = message.content
+  const [commandName, ...args] = message.content
     .trim()
     .substring(PREFIX.length)
     .split(/\s+/);
 
-  if (!client.commands.has(command)) return;
+  const command = client.commands.get(commandName) || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
+  
+  if (!command) return;
+
   try {
-    client.commands.get(command).execute(message, args);
+    command.execute(message, args);
   } catch (error) {
     console.error(error);
     message.reply('There was an error trying to execute that command!');
@@ -58,7 +61,7 @@ client.on('message', (message) => {
     'fuck',
     'shit',
   ];
-  if (swearWords.some((word) => message.content.includes(word))) {
+  if (swearWords.some((word) => message.content.includes(word.toLowerCase()))) {
     message.reply('Please maintain the decorum of channel!!!');
     message.delete().catch((e) => {});
   }

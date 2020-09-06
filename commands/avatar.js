@@ -1,5 +1,6 @@
 module.exports = {
   name: 'avatar',
+  aliases:['icon','dp'],
   description:
     '$avatar MEMBER_IDs:Generates link of the individual from the channel',
   execute(message, args) {
