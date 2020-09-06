@@ -1,8 +1,9 @@
 module.exports = {
   name: 'avatar',
-  aliases:['icon','dp'],
+  aliases: ['icon', 'dp'],
   description:
     '$avatar MEMBER_IDs:Generates link of the individual from the channel',
+  usage: '[Username]',
   execute(message, args) {
     if (!message.mentions.users.size) {
       return message.channel.send(

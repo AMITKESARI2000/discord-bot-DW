@@ -9,6 +9,7 @@ const webhookClient = new WebhookClient(
 module.exports = {
   name: 'announce',
   description: '$announce STRING:make announcements',
+  usage: '[Typpe String to announce]',
   execute(message, args) {
     const msg = args.join(' ');
     console.log(msg);

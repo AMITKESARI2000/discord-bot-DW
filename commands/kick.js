@@ -1,6 +1,7 @@
 module.exports = {
   name: 'kick',
   description: '$kick MEMBER_IDs: kicks a member out of channel',
+  usage: '[Member ID]',
   execute(message, args) {
     if (!message.member.hasPermission('KICK_MEMBERS'))
       return message.reply('You do not have permission!');

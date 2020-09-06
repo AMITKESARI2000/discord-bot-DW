@@ -1,6 +1,7 @@
 module.exports = {
   name: 'ban',
   description: '$ban MEMBER_ID:Bans an individual from the channel',
+  usage: '[Member ID]',
   execute(message, args) {
     if (!message.member.hasPermission('BAN_MEMBERS'))
       return message.reply('You do not have permission!');
